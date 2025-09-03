@@ -18,7 +18,7 @@ func TestParseEmptyPayload(t *testing.T) {
 		t.Fatalf("error parsing envelope: %v", err)
 	}
 
-	if !bytes.Equal(envelope.Magic(), NETWORK_MAGIC_MAINNET[:]) {
+	if envelope.Magic() != NETWORK_MAGIC_MAINNET {
 		t.Fatalf("invalid netowork magic")
 	}
 
@@ -32,7 +32,11 @@ func TestParseEmptyPayload(t *testing.T) {
 
 	hash := sha256.Sum256(envelope.Payload())
 	hash = sha256.Sum256(hash[:])
-	if !bytes.Equal(hash[:4], envelope.PayloadChecksum()[:]) {
+
+	var hashTrim [4]byte
+	copy(hashTrim[:], hash[:4])
+
+	if hashTrim != envelope.Checksum() {
 		t.Fatalf("invalid payload checksum")
 	}
 
@@ -42,5 +46,14 @@ func TestParseEmptyPayload(t *testing.T) {
 }
 
 func TestSerializeEmptyPayload(t *testing.T) {
-	t.Fatalf("implement")
+	envelope, err := NewNetworkEnvelope("verack", []byte{})
+	if err != nil {
+		t.Fatalf("new envelope could not be created")
+	}
+
+	raw := hex.EncodeToString(envelope.Serialize())
+
+	if raw != "f9beb4d976657261636b000000000000000000005df6e0e2" {
+		t.Fatalf("invalid serialization")
+	}
 }

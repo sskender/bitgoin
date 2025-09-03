@@ -17,6 +17,28 @@ type NetworkEnvelope struct {
 	payload         []byte
 }
 
+func NewNetworkEnvelope(command string, payload []byte) (*NetworkEnvelope, error) {
+	if len(command) > 12 {
+		return nil, fmt.Errorf("command is invalid - too long")
+	}
+
+	var cmd [12]byte
+	copy(cmd[:], command)
+
+	var payloadLength [4]byte
+	binary.LittleEndian.PutUint32(payloadLength[:], uint32(len(payload)))
+
+	e := NetworkEnvelope{
+		networkMagic:  NETWORK_MAGIC_MAINNET,
+		command:       cmd,
+		payloadLength: payloadLength,
+		payload:       payload,
+	}
+	e.payloadChecksum = e.calculateChecksum()
+
+	return &e, nil
+}
+
 func Parse(raw []byte) (*NetworkEnvelope, error) {
 	if len(raw) < 24 {
 		return nil, fmt.Errorf("header is too short")
@@ -25,11 +47,8 @@ func Parse(raw []byte) (*NetworkEnvelope, error) {
 	envelope := &NetworkEnvelope{}
 
 	copy(envelope.networkMagic[:], raw[0:4])
-
 	copy(envelope.command[:], raw[4:16])
-
 	copy(envelope.payloadLength[:], raw[16:20])
-
 	copy(envelope.payloadChecksum[:], raw[20:24])
 
 	payloadLength := envelope.PayloadLength()
@@ -60,8 +79,8 @@ func (e *NetworkEnvelope) Serialize() []byte {
 	return raw
 }
 
-func (e *NetworkEnvelope) Magic() []byte {
-	return e.networkMagic[:]
+func (e *NetworkEnvelope) Magic() [4]byte {
+	return e.networkMagic
 }
 
 func (e *NetworkEnvelope) Command() string {
@@ -72,20 +91,22 @@ func (e *NetworkEnvelope) PayloadLength() uint32 {
 	return binary.LittleEndian.Uint32(e.payloadLength[:])
 }
 
-func (e *NetworkEnvelope) PayloadChecksum() []byte {
-	return e.payloadChecksum[:]
+func (e *NetworkEnvelope) Checksum() [4]byte {
+	return e.payloadChecksum
 }
 
-func (e *NetworkEnvelope) calculateChecksum() []byte {
+func (e *NetworkEnvelope) calculateChecksum() [4]byte {
 	hash := sha256.Sum256(e.payload)
 	hash = sha256.Sum256(hash[:])
-	return hash[:4]
+
+	var hashTrim [4]byte
+	copy(hashTrim[:], hash[:4])
+
+	return hashTrim
 }
 
 func (e *NetworkEnvelope) verifyChecksum() bool {
-	calcChecksum := e.calculateChecksum()
-	checksum := e.PayloadChecksum()
-	return bytes.Equal(calcChecksum, checksum)
+	return e.Checksum() == e.calculateChecksum()
 }
 
 func (e *NetworkEnvelope) Payload() []byte {
