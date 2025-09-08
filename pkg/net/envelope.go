@@ -40,6 +40,9 @@ func NewNetworkEnvelope(command string, payload []byte) (*NetworkEnvelope, error
 }
 
 func Parse(raw []byte) (*NetworkEnvelope, error) {
+
+	// TODO better error handling
+
 	if len(raw) < 24 {
 		return nil, fmt.Errorf("header is too short")
 	}
@@ -68,6 +71,9 @@ func Parse(raw []byte) (*NetworkEnvelope, error) {
 }
 
 func (e *NetworkEnvelope) Serialize() []byte {
+
+	// TODO error handling
+
 	raw := make([]byte, 24+len(e.payload))
 
 	copy(raw[0:4], e.networkMagic[:])
