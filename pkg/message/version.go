@@ -1,6 +1,9 @@
-package messages
+package message
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+	"encoding/hex"
+)
 
 type VersionMessage struct {
 	protocolVersion [4]byte
@@ -23,15 +26,16 @@ type VersionMessage struct {
 	relay     [1]byte
 }
 
-func NewVersionMessage(raw []byte) (*VersionMessage, error) {
-	m := VersionMessage{}
+func NewVersionMessage() *VersionMessage {
 
-	err := m.Parse(raw)
-	if err != nil {
-		return nil, err
-	}
+	// TODO create new version message with sane defaults
 
-	return &m, nil
+	raw, _ := hex.DecodeString("7f1101000000000000000000ad17835b00000000000000000000000000000000000000000000ffff000000008d20000000000000000000000000000000000000ffff000000008d20f6a8d7a440ec27a11b2f70726f6772616d6d696e67626c6f636b636861696e3a302e312f0000000001")
+
+	m := &VersionMessage{}
+	m.Parse(raw)
+
+	return m
 }
 
 func (m *VersionMessage) Command() string {
@@ -72,7 +76,63 @@ func (m *VersionMessage) Parse(raw []byte) error {
 }
 
 func (m *VersionMessage) Serialize() []byte {
-	return []byte{}
+	userAgentLen := len(m.userAgent)
+	totalLen := 4 + 8 + 8 + // protocolVersion + networkServices + timestamp
+		8 + 16 + 2 + // receiver
+		8 + 16 + 2 + // sender
+		8 + // nonce
+		1 + userAgentLen + // user agent varstr (len + data)
+		4 + // height
+		1 // relay
+
+	raw := make([]byte, totalLen)
+
+	offset := 0
+
+	copy(raw[offset:offset+4], m.protocolVersion[:])
+	offset += 4
+
+	copy(raw[offset:offset+8], m.networkServices[:])
+	offset += 8
+
+	copy(raw[offset:offset+8], m.timestamp[:])
+	offset += 8
+
+	copy(raw[offset:offset+8], m.networkServicesReceiver[:])
+	offset += 8
+
+	copy(raw[offset:offset+16], m.addressReceiver[:])
+	offset += 16
+
+	copy(raw[offset:offset+2], m.portReceiver[:])
+	offset += 2
+
+	copy(raw[offset:offset+8], m.networkServicesSender[:])
+	offset += 8
+
+	copy(raw[offset:offset+16], m.addressSender[:])
+	offset += 16
+
+	copy(raw[offset:offset+2], m.portSender[:])
+	offset += 2
+
+	copy(raw[offset:offset+8], m.nonce[:])
+	offset += 8
+
+	// user agent length
+	raw[offset] = byte(userAgentLen)
+	offset++
+
+	copy(raw[offset:offset+userAgentLen], m.userAgent)
+	offset += userAgentLen
+
+	copy(raw[offset:offset+4], m.height[:])
+	offset += 4
+
+	copy(raw[offset:offset+1], m.relay[:])
+	offset++
+
+	return raw
 }
 
 func (m *VersionMessage) ProtocolVersion() uint32 {

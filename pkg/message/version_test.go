@@ -1,4 +1,4 @@
-package messages
+package message
 
 import (
 	"encoding/hex"
@@ -11,7 +11,9 @@ func TestParseVersionMessage(t *testing.T) {
 		t.Fatalf("invalid raw version message")
 	}
 
-	message, err := NewVersionMessage(raw)
+	message := VersionMessage{}
+
+	err = message.Parse(raw)
 	if err != nil {
 		t.Fatalf("error parsing version message: %v", err)
 	}

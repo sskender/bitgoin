@@ -1,10 +1,14 @@
-package net
+package node
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
 	"fmt"
+	"log"
+
+	"github.com/sskender/bitgoin/pkg/message"
 )
 
 var NETWORK_MAGIC_MAINNET = [4]byte{0xf9, 0xbe, 0xb4, 0xd9}
@@ -17,10 +21,19 @@ type NetworkEnvelope struct {
 	payload         []byte
 }
 
+// TODO create normal constructors
+
+func NewNetworkEnvelopeFromMessage(msg message.Message) (*NetworkEnvelope, error) {
+	return NewNetworkEnvelope(msg.Command(), msg.Serialize())
+}
+
 func NewNetworkEnvelope(command string, payload []byte) (*NetworkEnvelope, error) {
+	// TODO just refactor everything to load message payload
 	if len(command) > 12 {
 		return nil, fmt.Errorf("command is invalid - too long")
 	}
+
+	log.Printf("len of payload: %d", len(payload))
 
 	var cmd [12]byte
 	copy(cmd[:], command)
@@ -36,10 +49,24 @@ func NewNetworkEnvelope(command string, payload []byte) (*NetworkEnvelope, error
 	}
 	e.payloadChecksum = e.calculateChecksum()
 
+	log.Printf("envelope command is: %s", string(e.Command()))
+	log.Printf("payload len is %d", payloadLength[:])
+	log.Println(e.Payload())
+
 	return &e, nil
 }
 
+func (e *NetworkEnvelope) Stream(r *bufio.Reader) error {
+	//  TODO how to fking read this shit
+	return nil
+}
+
+// TODO parse is shit like the rest
+
 func Parse(raw []byte) (*NetworkEnvelope, error) {
+
+	// TODO completely change the parse method
+	// TODO support raw bytes and io direct read ???
 
 	// TODO better error handling
 

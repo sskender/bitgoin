@@ -1,6 +1,10 @@
-package messages
+package message
 
 type VerAckMessage struct {
+}
+
+func NewVerAckMessage() *VerAckMessage {
+	return &VerAckMessage{}
 }
 
 func (m *VerAckMessage) Command() string {
@@ -14,3 +18,7 @@ func (m *VerAckMessage) Parse(raw []byte) error {
 func (m *VerAckMessage) Serialize() []byte {
 	return []byte{}
 }
+
+// func (m *VerAckMessage) Handle() error {
+// 	return nil
+// }

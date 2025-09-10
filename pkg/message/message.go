@@ -1,20 +1,19 @@
-package net
+package message
 
 import (
 	"fmt"
-
-	"github.com/sskender/bitgoin/pkg/net/messages"
 )
 
 type Message interface {
 	Command() string
 	Parse([]byte) error
 	Serialize() []byte
+	// Handle() error
 }
 
 var messageRegistry = map[string]Message{
-	"version": &messages.VersionMessage{},
-	"verack":  &messages.VerAckMessage{},
+	"version": &VersionMessage{},
+	"verack":  &VerAckMessage{},
 }
 
 func NewMessage(command string) (Message, error) {
@@ -25,3 +24,5 @@ func NewMessage(command string) (Message, error) {
 
 	return nil, fmt.Errorf("command '%s' not recognized", command)
 }
+
+// TODO need to have handler methods in order to make sense at all
