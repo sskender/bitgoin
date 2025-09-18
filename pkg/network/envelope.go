@@ -1,11 +1,11 @@
 package network
 
 import (
-	"bufio"
 	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
 	"fmt"
+	"io"
 	"log"
 
 	"github.com/sskender/bitgoin/pkg/protocol"
@@ -72,11 +72,11 @@ func (e *NetworkEnvelope) Unwrap() (protocol.Message, error) {
 	return msg, nil
 }
 
-func (e *NetworkEnvelope) Stream(r *bufio.Reader) error {
+func (e *NetworkEnvelope) Stream(r io.Reader) error {
 	log.Println("reading network envelope header")
 
 	buf := make([]byte, 24)
-	read, err := r.Read(buf)
+	read, err := io.ReadFull(r, buf)
 	if err != nil {
 		return err
 	}
@@ -97,7 +97,7 @@ func (e *NetworkEnvelope) Stream(r *bufio.Reader) error {
 	log.Printf("reading network envelope payload with payload length %d", e.PayloadLength)
 
 	e.Payload = make([]byte, e.PayloadLength)
-	read, err = r.Read(e.Payload)
+	read, err = io.ReadFull(r, e.Payload)
 	if err != nil {
 		return err
 	}
@@ -112,7 +112,7 @@ func (e *NetworkEnvelope) Stream(r *bufio.Reader) error {
 		return fmt.Errorf("invalid network envelope checksum")
 	}
 
-	log.Printf("network envelope checksum is valid\nnetwork envelope stream finished")
+	log.Printf("network envelope stream finished")
 
 	return nil
 }
@@ -136,7 +136,7 @@ func (e *NetworkEnvelope) Parse(buf []byte) error {
 		return fmt.Errorf("invalid network envelope checksum")
 	}
 
-	log.Printf("network envelope checksum is valid\nnetwork envelope stream finished")
+	log.Printf("network envelope parse finished")
 
 	return nil
 }

@@ -1,6 +1,8 @@
 package node
 
 import (
+	"errors"
+	"io"
 	"log"
 
 	"github.com/sskender/bitgoin/pkg/network"
@@ -86,18 +88,20 @@ func (n *Node) handshake() error {
 
 func (n *Node) RunLoop() {
 
-	// for each peer { read socket -> parse -> dispatch -> maybe write }
+	// for each peer { read socket -> dispatch -> maybe write }
 
 	for {
 		msg, err := n.peer.Read()
 		if err != nil {
-			log.Printf("error on read from peer %s: %v\ncontinue", n.peer.Address, err)
-			continue
+			log.Printf("error on read from peer %s: %v", n.peer.Address, err)
+			if errors.Is(err, io.EOF) {
+				panic(err)
+			} else {
+				continue
+			}
 		}
 
 		log.Printf("just got message command '%s'", msg.Command())
-
-		// TODO parse -> process message logic
 
 		// TODO do something with message
 	}

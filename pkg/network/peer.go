@@ -2,6 +2,7 @@ package network
 
 import (
 	"bufio"
+	"io"
 	"log"
 	"net"
 
@@ -10,7 +11,7 @@ import (
 
 type Peer struct {
 	Address    string
-	connection net.Conn
+	connection io.ReadWriteCloser
 	reader     *bufio.Reader
 	writer     *bufio.Writer
 }
