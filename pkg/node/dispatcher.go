@@ -30,7 +30,7 @@ func (d *Dispatcher) Register(cmd string, handler protocol.MessageHandler) {
 	d.handlers[cmd] = handler
 }
 
-func (d *Dispatcher) Dispatch(msg protocol.Message) {
+func (d *Dispatcher) Dispatch(msg protocol.Message, peer protocol.Peer) {
 	cmd := msg.Command()
 
 	log.Printf("dispatching message '%s'", cmd)
@@ -41,7 +41,7 @@ func (d *Dispatcher) Dispatch(msg protocol.Message) {
 		return
 	}
 
-	err := handler.Handle(msg)
+	err := handler.Handle(msg, peer)
 	if err != nil {
 		log.Printf("error handling message command '%s': %v", cmd, err)
 	}

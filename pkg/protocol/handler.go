@@ -1,5 +1,5 @@
 package protocol
 
 type MessageHandler interface {
-	Handle(msg Message) error
+	Handle(msg Message, peer Peer) error
 }

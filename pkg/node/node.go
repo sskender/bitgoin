@@ -38,13 +38,13 @@ func (n *Node) ConnectPeer(addr string) error {
 		return err
 	}
 
-	log.Printf("added peer %s", n.peer.Address)
+	log.Printf("added peer %s", n.peer.Address())
 
 	return nil
 }
 
 func (n *Node) handshake() error {
-	log.Printf("starting the handshake with peer %s", n.peer.Address)
+	log.Printf("starting the handshake with peer %s", n.peer.Address())
 
 	versionMsg := messages.NewVersionMessage()
 	err := n.peer.Send(versionMsg)
@@ -87,7 +87,7 @@ func (n *Node) handshake() error {
 
 	}
 
-	log.Printf("handshake finished successfully with peer %s", n.peer.Address)
+	log.Printf("handshake finished successfully with peer %s", n.peer.Address())
 
 	return nil
 }
@@ -96,7 +96,7 @@ func (n *Node) RunLoop() {
 	for {
 		msg, err := n.peer.Read()
 		if err != nil {
-			log.Printf("error on read from peer %s: %v", n.peer.Address, err)
+			log.Printf("error on read from peer %s: %v", n.peer.Address(), err)
 			if errors.Is(err, io.EOF) {
 				panic(err)
 			} else {
@@ -104,6 +104,6 @@ func (n *Node) RunLoop() {
 			}
 		}
 
-		n.dispatcher.Dispatch(msg)
+		n.dispatcher.Dispatch(msg, n.peer)
 	}
 }

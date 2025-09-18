@@ -10,7 +10,7 @@ import (
 )
 
 type Peer struct {
-	Address    string
+	address    string
 	connection io.ReadWriteCloser
 	reader     *bufio.Reader
 	writer     *bufio.Writer
@@ -21,9 +21,9 @@ func Connect(addr string) (*Peer, error) {
 
 	p := Peer{}
 
-	p.Address = addr
+	p.address = addr
 
-	conn, err := net.Dial("tcp", p.Address)
+	conn, err := net.Dial("tcp", p.address)
 	if err != nil {
 		return nil, err
 	}
@@ -36,10 +36,14 @@ func Connect(addr string) (*Peer, error) {
 	return &p, nil
 }
 
+func (p *Peer) Address() string {
+	return p.address
+}
+
 func (p *Peer) Send(msg protocol.Message) error {
 	command := msg.Command()
 
-	log.Printf("sending message with command %s to peer %s", command, p.Address)
+	log.Printf("sending message with command %s to peer %s", command, p.address)
 
 	envelope := NewEmptyNetworkEnvelope()
 	err := envelope.Wrap(msg)
@@ -57,13 +61,13 @@ func (p *Peer) Send(msg protocol.Message) error {
 		return err
 	}
 
-	log.Printf("message with command '%s' sent to peer %s", command, p.Address)
+	log.Printf("message with command '%s' sent to peer %s", command, p.address)
 
 	return nil
 }
 
 func (p *Peer) Read() (protocol.Message, error) {
-	log.Printf("reading message from peer %s", p.Address)
+	log.Printf("reading message from peer %s", p.address)
 
 	envelope := NewEmptyNetworkEnvelope()
 
@@ -77,7 +81,7 @@ func (p *Peer) Read() (protocol.Message, error) {
 		return nil, err
 	}
 
-	log.Printf("message with command '%s' read from peer %s", msg.Command(), p.Address)
+	log.Printf("message with command '%s' read from peer %s", msg.Command(), p.address)
 
 	return msg, nil
 }

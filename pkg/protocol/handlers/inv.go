@@ -8,7 +8,7 @@ import (
 
 type InvHandler struct{}
 
-func (h *InvHandler) Handle(msg protocol.Message) error {
+func (h *InvHandler) Handle(msg protocol.Message, peer protocol.Peer) error {
 	log.Printf("handling %s message", msg.Command())
 	return nil
 }

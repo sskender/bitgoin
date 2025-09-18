@@ -8,7 +8,7 @@ import (
 
 type FeeFilterHandler struct{}
 
-func (h *FeeFilterHandler) Handle(msg protocol.Message) error {
+func (h *FeeFilterHandler) Handle(msg protocol.Message, peer protocol.Peer) error {
 	log.Printf("handling %s message", msg.Command())
 	return nil
 }

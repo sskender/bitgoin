@@ -1,5 +1,7 @@
 package messages
 
+import "github.com/sskender/bitgoin/pkg/protocol"
+
 type VerAckMessage struct{}
 
 func NewVerAckMessage() *VerAckMessage {
@@ -7,7 +9,7 @@ func NewVerAckMessage() *VerAckMessage {
 }
 
 func (m *VerAckMessage) Command() string {
-	return "verack"
+	return protocol.MESSAGE_TYPE_VERACK
 }
 
 func (m *VerAckMessage) Parse(raw []byte) error {
