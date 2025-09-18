@@ -1,9 +1,11 @@
-package message
+package protocol
 
 import (
 	"encoding/binary"
 	"encoding/hex"
 )
+
+// TODO refactor this shit like envelope
 
 type VersionMessage struct {
 	protocolVersion [4]byte

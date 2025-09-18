@@ -1,112 +1,45 @@
 package node
 
 import (
-	"bufio"
-	"fmt"
 	"log"
-	"net"
 
-	"github.com/sskender/bitgoin/pkg/message"
+	"github.com/sskender/bitgoin/pkg/network"
+	"github.com/sskender/bitgoin/pkg/protocol"
 )
 
-// TODO this is not node  - its peer => all the naming is wrong
-
 type Node struct {
-	Peer net.Conn
+	peer *network.Peer
 }
 
-func NewNode(addr string) (*Node, error) {
-
-	// TODO this is terrible here
-
-	conn, err := net.Dial("tcp", addr)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Node{Peer: conn}, nil
+func NewSimpleNode() *Node {
+	return &Node{}
 }
 
-func (n *Node) send(msg message.Message) error {
-	envelope, err := NewNetworkEnvelopeFromMessage(msg)
-	if err != nil {
-		return nil
-	}
+func (n *Node) ConnectPeer(addr string) error {
+	log.Printf("adding peer %s", addr)
 
-	raw := envelope.Serialize()
-
-	log.Println("sending raw")
-	log.Println(raw)
-
-	// TODO get what is written
-
-	_, err = n.Peer.Write(raw)
+	peer, err := network.Connect(addr)
 	if err != nil {
 		return err
 	}
 
+	n.peer = peer
+
+	err = n.handshake()
+	if err != nil {
+		return err
+	}
+
+	log.Printf("added peer %s", n.peer.Address)
+
 	return nil
 }
 
-func (n *Node) read() (message.Message, error) {
+func (n *Node) handshake() error {
+	log.Printf("starting the handshake with peer %s", n.peer.Address)
 
-	// var raw []byte = []byte{}
-	r := bufio.NewReader(n.Peer)
-
-	// TODO implement stream
-	buf := make([]byte, 24)
-	log.Println("calling read on tcp")
-	read, err := r.Read(buf)
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Printf("i have just read header: %d", read)
-	fmt.Println(buf)
-
-	envelope, err := Parse(buf)
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Println(envelope.Magic())
-
-	msg, err := message.NewMessage(envelope.Command())
-	if err != nil {
-		return nil, err
-	}
-
-	err = msg.Parse(envelope.Payload())
-	if err != nil {
-		return nil, err
-	}
-
-	return msg, nil
-}
-
-// func (n *Node) waitForHandshake() (message.Message, error) {
-// 	for {
-// 		msg, err := n.read()
-// 		if err != nil {
-// 			return nil, err
-// 		}
-
-// 		if msg.Command() == "version" || msg.Command() == "verack" {
-// 			return msg, nil
-// 		}
-
-// 		// TODO handle ping
-// 	}
-// }
-
-func (n *Node) Handshake() error {
-
-	// TODO handshake with who?
-
-	versionMsg := message.NewVersionMessage()
-	verackMsg := message.NewVerAckMessage()
-
-	err := n.send(versionMsg)
+	versionMsg := protocol.NewVersionMessage()
+	err := n.peer.Send(versionMsg)
 	if err != nil {
 		return err
 	}
@@ -114,57 +47,58 @@ func (n *Node) Handshake() error {
 	verackReceived := false
 	versionReceived := false
 
-	var msg message.Message
+	var msg protocol.Message
 
 	for {
 		if verackReceived && versionReceived {
 			break
 		}
 
-		for {
-			log.Println("now reading response")
-			msg, err = n.read()
+		msg, err = n.peer.Read()
+		if err != nil {
+			return err
+		}
+
+		if msg.Command() == protocol.MESSAGE_TYPE_VERACK {
+			log.Printf("got verack message in handshake")
+
+			verackReceived = true
+		} else if msg.Command() == protocol.MESSAGE_TYPE_VERSION {
+			log.Printf("got version message in handshake")
+
+			versionReceived = true
+
+			verackMsg := protocol.NewVerAckMessage()
+			err = n.peer.Send(verackMsg)
 			if err != nil {
 				return err
 			}
-
-			if msg.Command() == "verack" {
-				verackReceived = true
-				break
-			}
-
-			if msg.Command() == "version" {
-				versionReceived = true
-
-				err = n.send(verackMsg)
-				if err != nil {
-					return err
-				}
-
-				break
-			}
+		} else {
+			log.Printf("ignoring message '%s' in handshake process", msg.Command())
 		}
 
-		// msg, err := n.waitForHandshake()
-		// if err != nil {
-		// 	return err
-		// }
-
-		// if msg.Command() == "verack" { // TODO dont hardcode
-		// 	verackReceived = true
-		// }
-
-		// if msg.Command() == "version" { // TODO how to messages.VerAckMessage.Command {
-		// 	versionReceived = true
-
-		// 	err = n.send(&verackMsg)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// }
 	}
+
+	log.Printf("handshake finished successfully with peer %s", n.peer.Address)
 
 	return nil
 }
 
-// TODO read loop
+func (n *Node) RunLoop() {
+
+	// for each peer { read socket -> parse -> dispatch -> maybe write }
+
+	for {
+		msg, err := n.peer.Read()
+		if err != nil {
+			log.Printf("error on read from peer %s: %v\ncontinue", n.peer.Address, err)
+			continue
+		}
+
+		log.Printf("just got message command '%s'", msg.Command())
+
+		// TODO parse -> process message logic
+
+		// TODO do something with message
+	}
+}

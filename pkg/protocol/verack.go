@@ -1,4 +1,4 @@
-package message
+package protocol
 
 type VerAckMessage struct {
 }
@@ -18,7 +18,3 @@ func (m *VerAckMessage) Parse(raw []byte) error {
 func (m *VerAckMessage) Serialize() []byte {
 	return []byte{}
 }
-
-// func (m *VerAckMessage) Handle() error {
-// 	return nil
-// }

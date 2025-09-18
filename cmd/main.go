@@ -9,17 +9,10 @@ import (
 func main() {
 	log.Printf("bitgoin is starting")
 
+	node := node.NewSimpleNode()
+
 	addr := "158.180.239.74:8333"
+	node.ConnectPeer(addr)
 
-	node, err := node.NewNode(addr)
-	if err != nil {
-		panic(err)
-	}
-
-	err = node.Handshake()
-	if err != nil {
-		panic(err)
-	}
-
-	// TODO read in loop
+	node.RunLoop()
 }
