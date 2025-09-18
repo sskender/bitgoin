@@ -7,14 +7,20 @@ import (
 
 	"github.com/sskender/bitgoin/pkg/network"
 	"github.com/sskender/bitgoin/pkg/protocol"
+	"github.com/sskender/bitgoin/pkg/protocol/messages"
 )
 
 type Node struct {
-	peer *network.Peer
+	peer       *network.Peer
+	dispatcher *Dispatcher
 }
 
 func NewSimpleNode() *Node {
-	return &Node{}
+	d := InitializeDispatcher()
+
+	return &Node{
+		dispatcher: d,
+	}
 }
 
 func (n *Node) ConnectPeer(addr string) error {
@@ -40,7 +46,7 @@ func (n *Node) ConnectPeer(addr string) error {
 func (n *Node) handshake() error {
 	log.Printf("starting the handshake with peer %s", n.peer.Address)
 
-	versionMsg := protocol.NewVersionMessage()
+	versionMsg := messages.NewVersionMessage()
 	err := n.peer.Send(versionMsg)
 	if err != nil {
 		return err
@@ -70,7 +76,7 @@ func (n *Node) handshake() error {
 
 			versionReceived = true
 
-			verackMsg := protocol.NewVerAckMessage()
+			verackMsg := messages.NewVerAckMessage()
 			err = n.peer.Send(verackMsg)
 			if err != nil {
 				return err
@@ -87,9 +93,6 @@ func (n *Node) handshake() error {
 }
 
 func (n *Node) RunLoop() {
-
-	// for each peer { read socket -> dispatch -> maybe write }
-
 	for {
 		msg, err := n.peer.Read()
 		if err != nil {
@@ -101,8 +104,6 @@ func (n *Node) RunLoop() {
 			}
 		}
 
-		log.Printf("just got message command '%s'", msg.Command())
-
-		// TODO do something with message
+		n.dispatcher.Dispatch(msg)
 	}
 }

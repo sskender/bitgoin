@@ -1,7 +1,6 @@
-package protocol
+package messages
 
-type VerAckMessage struct {
-}
+type VerAckMessage struct{}
 
 func NewVerAckMessage() *VerAckMessage {
 	return &VerAckMessage{}

@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/sskender/bitgoin/pkg/protocol"
+	"github.com/sskender/bitgoin/pkg/protocol/messages"
 )
 
 func TestParseEmptyPayload(t *testing.T) {
@@ -49,7 +49,7 @@ func TestParseEmptyPayload(t *testing.T) {
 }
 
 func TestSerializeEmptyPayload(t *testing.T) {
-	msg := protocol.NewVerAckMessage()
+	msg := messages.NewVerAckMessage()
 
 	envelope := NewEmptyNetworkEnvelope()
 	err := envelope.Wrap(msg)

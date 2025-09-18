@@ -9,6 +9,7 @@ import (
 	"log"
 
 	"github.com/sskender/bitgoin/pkg/protocol"
+	"github.com/sskender/bitgoin/pkg/protocol/messages"
 )
 
 var NETWORK_MAGIC_MAINNET = [4]byte{0xf9, 0xbe, 0xb4, 0xd9}
@@ -55,9 +56,17 @@ func (e *NetworkEnvelope) Unwrap() (protocol.Message, error) {
 
 	switch e.Command {
 	case protocol.MESSAGE_TYPE_VERSION:
-		msg = &protocol.VersionMessage{}
+		msg = &messages.VersionMessage{}
 	case protocol.MESSAGE_TYPE_VERACK:
-		msg = &protocol.VerAckMessage{}
+		msg = &messages.VerAckMessage{}
+	case protocol.MESSAGE_TYPE_SENDCMPCT:
+		msg = &messages.SendCMPCTMessage{}
+	case protocol.MESSAGE_TYPE_PING:
+		msg = &messages.PingMessage{}
+	case protocol.MESSAGE_TYPE_INV:
+		msg = &messages.InvMessage{}
+	case protocol.MESSAGE_TYPE_FEEFILTER:
+		msg = &messages.FeeFilterMessage{}
 	default:
 		return nil, fmt.Errorf("unknown message with command '%s'", e.Command)
 	}
