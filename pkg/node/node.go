@@ -7,20 +7,16 @@ import (
 
 	"github.com/sskender/bitgoin/pkg/network"
 	"github.com/sskender/bitgoin/pkg/protocol"
+	"github.com/sskender/bitgoin/pkg/protocol/base"
 	"github.com/sskender/bitgoin/pkg/protocol/messages"
 )
 
 type Node struct {
-	peer       *network.Peer
-	dispatcher *Dispatcher
+	peer *network.Peer
 }
 
 func NewSimpleNode() *Node {
-	d := InitializeDispatcher()
-
-	return &Node{
-		dispatcher: d,
-	}
+	return &Node{}
 }
 
 func (n *Node) ConnectPeer(addr string) error {
@@ -47,7 +43,13 @@ func (n *Node) handshake() error {
 	log.Printf("starting the handshake with peer %s", n.peer.Address())
 
 	versionMsg := messages.NewVersionMessage()
-	err := n.peer.Send(versionMsg)
+
+	envelope, err := base.WrapMessage(versionMsg)
+	if err != nil {
+		return err
+	}
+
+	err = n.peer.Send(envelope)
 	if err != nil {
 		return err
 	}
@@ -55,29 +57,40 @@ func (n *Node) handshake() error {
 	verackReceived := false
 	versionReceived := false
 
-	var msg protocol.Message
+	var msg base.Message
 
 	for {
 		if verackReceived && versionReceived {
 			break
 		}
 
-		msg, err = n.peer.Read()
+		envelope, err := n.peer.Receive()
 		if err != nil {
 			return err
 		}
 
-		if msg.Command() == protocol.MESSAGE_TYPE_VERACK {
+		msg, err = protocol.UnwrapEnvelope(envelope)
+		if err != nil {
+			return err
+		}
+
+		if msg.Command() == base.MESSAGE_TYPE_VERACK {
 			log.Printf("got verack message in handshake")
 
 			verackReceived = true
-		} else if msg.Command() == protocol.MESSAGE_TYPE_VERSION {
+		} else if msg.Command() == base.MESSAGE_TYPE_VERSION {
 			log.Printf("got version message in handshake")
 
 			versionReceived = true
 
 			verackMsg := messages.NewVerAckMessage()
-			err = n.peer.Send(verackMsg)
+
+			envelope, err := base.WrapMessage(verackMsg)
+			if err != nil {
+				return err
+			}
+
+			err = n.peer.Send(envelope)
 			if err != nil {
 				return err
 			}
@@ -94,7 +107,7 @@ func (n *Node) handshake() error {
 
 func (n *Node) RunLoop() {
 	for {
-		msg, err := n.peer.Read()
+		envelope, err := n.peer.Receive()
 		if err != nil {
 			log.Printf("error on read from peer %s: %v", n.peer.Address(), err)
 			if errors.Is(err, io.EOF) {
@@ -104,6 +117,11 @@ func (n *Node) RunLoop() {
 			}
 		}
 
-		n.dispatcher.Dispatch(msg, n.peer)
+		msg, err := protocol.UnwrapEnvelope(envelope)
+		if err != nil {
+			panic(err)
+		}
+
+		protocol.Dispatch(msg, n.peer)
 	}
 }

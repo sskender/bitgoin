@@ -1,13 +1,15 @@
 package messages
 
-import "github.com/sskender/bitgoin/pkg/protocol"
+import (
+	"github.com/sskender/bitgoin/pkg/protocol/base"
+)
 
 type PingMessage struct {
 	Nonce [8]byte
 }
 
 func (m *PingMessage) Command() string {
-	return protocol.MESSAGE_TYPE_PING
+	return base.MESSAGE_TYPE_PING
 }
 
 func (m *PingMessage) Parse(raw []byte) error {

@@ -1,11 +1,13 @@
 package messages
 
-import "github.com/sskender/bitgoin/pkg/protocol"
+import (
+	"github.com/sskender/bitgoin/pkg/protocol/base"
+)
 
 type SendCMPCTMessage struct{}
 
 func (m *SendCMPCTMessage) Command() string {
-	return protocol.MESSAGE_TYPE_SENDCMPCT
+	return base.MESSAGE_TYPE_SENDCMPCT
 }
 
 func (m *SendCMPCTMessage) Parse(raw []byte) error {

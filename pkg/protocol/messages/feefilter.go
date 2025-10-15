@@ -1,11 +1,13 @@
 package messages
 
-import "github.com/sskender/bitgoin/pkg/protocol"
+import (
+	"github.com/sskender/bitgoin/pkg/protocol/base"
+)
 
 type FeeFilterMessage struct{}
 
 func (m *FeeFilterMessage) Command() string {
-	return protocol.MESSAGE_TYPE_FEEFILTER
+	return base.MESSAGE_TYPE_FEEFILTER
 }
 
 func (m *FeeFilterMessage) Parse(raw []byte) error {

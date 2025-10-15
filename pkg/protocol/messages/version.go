@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 
-	"github.com/sskender/bitgoin/pkg/protocol"
+	"github.com/sskender/bitgoin/pkg/protocol/base"
 )
 
 // TODO refactor this shit like envelope
@@ -43,7 +43,7 @@ func NewVersionMessage() *VersionMessage {
 }
 
 func (m *VersionMessage) Command() string {
-	return protocol.MESSAGE_TYPE_VERSION
+	return base.MESSAGE_TYPE_VERSION
 }
 
 func (m *VersionMessage) Parse(raw []byte) error {

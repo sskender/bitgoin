@@ -1,4 +1,4 @@
-package protocol
+package base
 
 const (
 	MESSAGE_TYPE_FEEFILTER = "feefilter"
@@ -9,9 +9,3 @@ const (
 	MESSAGE_TYPE_VERACK    = "verack"
 	MESSAGE_TYPE_VERSION   = "version"
 )
-
-type Message interface {
-	Command() string
-	Parse([]byte) error
-	Serialize() []byte
-}

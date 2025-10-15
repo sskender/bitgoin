@@ -1,11 +1,13 @@
 package messages
 
-import "github.com/sskender/bitgoin/pkg/protocol"
+import (
+	"github.com/sskender/bitgoin/pkg/protocol/base"
+)
 
 type InvMessage struct{}
 
 func (m *InvMessage) Command() string {
-	return protocol.MESSAGE_TYPE_INV
+	return base.MESSAGE_TYPE_INV
 }
 
 func (m *InvMessage) Parse(raw []byte) error {

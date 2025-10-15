@@ -1,6 +1,8 @@
 package messages
 
-import "github.com/sskender/bitgoin/pkg/protocol"
+import (
+	"github.com/sskender/bitgoin/pkg/protocol/base"
+)
 
 type PongMessage struct {
 	Nonce [8]byte
@@ -11,7 +13,7 @@ func NewPongMessage(nonce [8]byte) *PongMessage {
 }
 
 func (m *PongMessage) Command() string {
-	return protocol.MESSAGE_TYPE_PONG
+	return base.MESSAGE_TYPE_PONG
 }
 
 func (m *PongMessage) Parse(raw []byte) error {

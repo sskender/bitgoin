@@ -7,9 +7,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-
-	"github.com/sskender/bitgoin/pkg/protocol"
-	"github.com/sskender/bitgoin/pkg/protocol/messages"
 )
 
 var NETWORK_MAGIC_MAINNET = [4]byte{0xf9, 0xbe, 0xb4, 0xd9}
@@ -24,61 +21,6 @@ type NetworkEnvelope struct {
 
 func NewEmptyNetworkEnvelope() *NetworkEnvelope {
 	return &NetworkEnvelope{}
-}
-
-func (e *NetworkEnvelope) Wrap(msg protocol.Message) error {
-	command := msg.Command()
-	payload := msg.Serialize()
-
-	log.Printf("wraping message command '%s' with network envelope", command)
-
-	if len(command) > 12 {
-		return fmt.Errorf("command '%s' is invalid - too long", command)
-	}
-
-	log.Printf("wrapping payload of len %d", len(payload))
-
-	e.NetworkMagic = NETWORK_MAGIC_MAINNET
-	e.Command = command
-	e.PayloadLength = uint32(len(payload))
-	e.Payload = payload
-	e.PayloadChecksum = e.calculateChecksum()
-
-	log.Println("message wrapped with network envelope")
-
-	return nil
-}
-
-func (e *NetworkEnvelope) Unwrap() (protocol.Message, error) {
-	log.Printf("unwrapping network envelope command '%s'", e.Command)
-
-	var msg protocol.Message
-
-	switch e.Command {
-	case protocol.MESSAGE_TYPE_VERSION:
-		msg = &messages.VersionMessage{}
-	case protocol.MESSAGE_TYPE_VERACK:
-		msg = &messages.VerAckMessage{}
-	case protocol.MESSAGE_TYPE_SENDCMPCT:
-		msg = &messages.SendCMPCTMessage{}
-	case protocol.MESSAGE_TYPE_PING:
-		msg = &messages.PingMessage{}
-	case protocol.MESSAGE_TYPE_INV:
-		msg = &messages.InvMessage{}
-	case protocol.MESSAGE_TYPE_FEEFILTER:
-		msg = &messages.FeeFilterMessage{}
-	default:
-		return nil, fmt.Errorf("unknown message with command '%s'", e.Command)
-	}
-
-	err := msg.Parse(e.Payload)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Printf("unwrapped message command '%s'", msg.Command())
-
-	return msg, nil
 }
 
 func (e *NetworkEnvelope) Stream(r io.Reader) error {
@@ -170,7 +112,7 @@ func (e *NetworkEnvelope) Serialize() []byte {
 	return buf
 }
 
-func (e *NetworkEnvelope) calculateChecksum() [4]byte {
+func (e *NetworkEnvelope) CalculateChecksum() [4]byte {
 	hash := sha256.Sum256(e.Payload)
 	hash = sha256.Sum256(hash[:])
 
@@ -181,5 +123,5 @@ func (e *NetworkEnvelope) calculateChecksum() [4]byte {
 }
 
 func (e *NetworkEnvelope) verifyChecksum() bool {
-	return e.PayloadChecksum == e.calculateChecksum()
+	return e.PayloadChecksum == e.CalculateChecksum()
 }

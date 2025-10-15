@@ -5,8 +5,6 @@ import (
 	"io"
 	"log"
 	"net"
-
-	"github.com/sskender/bitgoin/pkg/protocol"
 )
 
 type Peer struct {
@@ -40,18 +38,12 @@ func (p *Peer) Address() string {
 	return p.address
 }
 
-func (p *Peer) Send(msg protocol.Message) error {
-	command := msg.Command()
+func (p *Peer) Send(envelope *NetworkEnvelope) error {
+	command := envelope.Command
 
 	log.Printf("sending message with command %s to peer %s", command, p.address)
 
-	envelope := NewEmptyNetworkEnvelope()
-	err := envelope.Wrap(msg)
-	if err != nil {
-		return err
-	}
-
-	_, err = p.writer.Write(envelope.Serialize())
+	_, err := p.writer.Write(envelope.Serialize())
 	if err != nil {
 		return err
 	}
@@ -66,7 +58,7 @@ func (p *Peer) Send(msg protocol.Message) error {
 	return nil
 }
 
-func (p *Peer) Read() (protocol.Message, error) {
+func (p *Peer) Receive() (*NetworkEnvelope, error) {
 	log.Printf("reading message from peer %s", p.address)
 
 	envelope := NewEmptyNetworkEnvelope()
@@ -76,12 +68,8 @@ func (p *Peer) Read() (protocol.Message, error) {
 		return nil, err
 	}
 
-	msg, err := envelope.Unwrap()
-	if err != nil {
-		return nil, err
-	}
+	command := envelope.Command
+	log.Printf("message with command '%s' read from peer %s", command, p.address)
 
-	log.Printf("message with command '%s' read from peer %s", msg.Command(), p.address)
-
-	return msg, nil
+	return envelope, nil
 }

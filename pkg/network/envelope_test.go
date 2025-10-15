@@ -5,8 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"testing"
-
-	"github.com/sskender/bitgoin/pkg/protocol/messages"
 )
 
 func TestParseEmptyPayload(t *testing.T) {
@@ -45,21 +43,5 @@ func TestParseEmptyPayload(t *testing.T) {
 
 	if !bytes.Equal(envelope.Payload, []byte{}) {
 		t.Fatalf("invalid payload")
-	}
-}
-
-func TestSerializeEmptyPayload(t *testing.T) {
-	msg := messages.NewVerAckMessage()
-
-	envelope := NewEmptyNetworkEnvelope()
-	err := envelope.Wrap(msg)
-	if err != nil {
-		t.Fatalf("new envelope could not be created")
-	}
-
-	raw := hex.EncodeToString(envelope.Serialize())
-
-	if raw != "f9beb4d976657261636b000000000000000000005df6e0e2" {
-		t.Fatalf("invalid serialization")
 	}
 }
