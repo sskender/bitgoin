@@ -14,5 +14,6 @@ func main() {
 	addr := "158.180.239.74:8333"
 	node.ConnectPeer(addr)
 
+	go node.RunPingLoop()
 	node.RunLoop()
 }

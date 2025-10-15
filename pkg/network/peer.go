@@ -5,13 +5,19 @@ import (
 	"io"
 	"log"
 	"net"
+	"time"
 )
 
 type Peer struct {
-	address    string
+	address string
+
 	connection io.ReadWriteCloser
 	reader     *bufio.Reader
 	writer     *bufio.Writer
+
+	PingNonce [8]byte
+	PingTime  time.Time
+	PingRTT   time.Duration
 }
 
 func Connect(addr string) (*Peer, error) {

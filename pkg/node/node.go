@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"log"
+	"time"
 
 	"github.com/sskender/bitgoin/pkg/network"
 	"github.com/sskender/bitgoin/pkg/protocol"
@@ -123,5 +124,35 @@ func (n *Node) RunLoop() {
 		}
 
 		protocol.Dispatch(msg, n.peer)
+	}
+}
+
+func (n *Node) RunPingLoop() {
+	log.Printf("running ping loop")
+
+	// reset RTT of peer on startup
+	n.peer.PingRTT = -1
+
+	for {
+		time.Sleep(1 * time.Minute)
+
+		pingMsg := messages.NewPingMessage()
+		log.Printf("sending ping nonce %x to peer %s", pingMsg.Nonce, n.peer.Address())
+
+		n.peer.PingNonce = pingMsg.Nonce
+		n.peer.PingTime = time.Now()
+
+		// TODO handle fails - reconnect peer?
+
+		envelope, err := base.WrapMessage(pingMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		err = n.peer.Send(envelope)
+		if err != nil {
+			log.Printf("error sending ping to peer %s: %v", n.peer.Address(), err)
+			panic(err)
+		}
 	}
 }

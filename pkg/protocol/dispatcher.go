@@ -35,7 +35,7 @@ func init() {
 	registerMessageHandler(base.MESSAGE_TYPE_FEEFILTER, &handlers.FeeFilterHandler{})
 	registerMessageHandler(base.MESSAGE_TYPE_INV, &handlers.InvHandler{})
 	registerMessageHandler(base.MESSAGE_TYPE_PING, &handlers.PingHandler{})
-	// TODO pong
+	registerMessageHandler(base.MESSAGE_TYPE_PONG, &handlers.PongHandler{})
 	registerMessageHandler(base.MESSAGE_TYPE_SENDCMPCT, &handlers.SendCMPCTHandler{})
 	registerMessageHandler(base.MESSAGE_TYPE_VERACK, &handlers.VerAckHandler{})
 	registerMessageHandler(base.MESSAGE_TYPE_VERSION, &handlers.VersionHandler{})

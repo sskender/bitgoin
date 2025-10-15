@@ -39,7 +39,7 @@ func init() {
 	registerMessage(base.MESSAGE_TYPE_FEEFILTER, &messages.FeeFilterMessage{})
 	registerMessage(base.MESSAGE_TYPE_INV, &messages.InvMessage{})
 	registerMessage(base.MESSAGE_TYPE_PING, &messages.PingMessage{})
-	// TODO pong
+	registerMessage(base.MESSAGE_TYPE_PONG, &messages.PongMessage{})
 	registerMessage(base.MESSAGE_TYPE_SENDCMPCT, &messages.SendCMPCTMessage{})
 	registerMessage(base.MESSAGE_TYPE_VERACK, &messages.VerAckMessage{})
 	registerMessage(base.MESSAGE_TYPE_VERSION, &messages.VersionMessage{})
