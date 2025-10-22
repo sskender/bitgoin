@@ -23,6 +23,22 @@ func NewEmptyNetworkEnvelope() *NetworkEnvelope {
 	return &NetworkEnvelope{}
 }
 
+func NewNetworkEnvelope(command string, payload []byte) (*NetworkEnvelope, error) {
+	if len(command) > 12 {
+		return nil, fmt.Errorf("command '%s' is invalid - too long", command)
+	}
+
+	e := NewEmptyNetworkEnvelope()
+
+	e.NetworkMagic = NETWORK_MAGIC_MAINNET
+	e.Command = command
+	e.PayloadLength = uint32(len(payload))
+	e.Payload = payload
+	e.PayloadChecksum = e.calculateChecksum()
+
+	return e, nil
+}
+
 func (e *NetworkEnvelope) Stream(r io.Reader) error {
 	log.Println("reading network envelope header")
 
@@ -112,7 +128,7 @@ func (e *NetworkEnvelope) Serialize() []byte {
 	return buf
 }
 
-func (e *NetworkEnvelope) CalculateChecksum() [4]byte {
+func (e *NetworkEnvelope) calculateChecksum() [4]byte {
 	hash := sha256.Sum256(e.Payload)
 	hash = sha256.Sum256(hash[:])
 
@@ -123,5 +139,5 @@ func (e *NetworkEnvelope) CalculateChecksum() [4]byte {
 }
 
 func (e *NetworkEnvelope) verifyChecksum() bool {
-	return e.PayloadChecksum == e.CalculateChecksum()
+	return e.PayloadChecksum == e.calculateChecksum()
 }

@@ -1,7 +1,6 @@
 package base
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/sskender/bitgoin/pkg/network"
@@ -19,21 +18,14 @@ func WrapMessage(msg Message) (*network.NetworkEnvelope, error) {
 
 	log.Printf("wraping message command '%s' with network envelope", command)
 
-	if len(command) > 12 {
-		return nil, fmt.Errorf("command '%s' is invalid - too long", command)
-	}
-
 	log.Printf("wrapping payload of len %d", len(payload))
 
-	e := network.NewEmptyNetworkEnvelope()
-
-	e.NetworkMagic = network.NETWORK_MAGIC_MAINNET
-	e.Command = command
-	e.PayloadLength = uint32(len(payload))
-	e.Payload = payload
-	e.PayloadChecksum = e.CalculateChecksum()
+	envelope, err := network.NewNetworkEnvelope(command, payload)
+	if err != nil {
+		return nil, err
+	}
 
 	log.Println("message wrapped with network envelope")
 
-	return e, nil
+	return envelope, nil
 }
