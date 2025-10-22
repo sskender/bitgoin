@@ -15,5 +15,7 @@ func main() {
 	node.ConnectPeer(addr)
 
 	go node.RunPingLoop()
-	node.RunLoop()
+
+	err := node.RunLoop()
+	log.Println(err)
 }

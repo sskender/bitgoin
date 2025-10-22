@@ -12,6 +12,8 @@ import (
 	"github.com/sskender/bitgoin/pkg/protocol/messages"
 )
 
+// TODO handle panics
+
 type Node struct {
 	peer *network.Peer
 }
@@ -106,15 +108,15 @@ func (n *Node) handshake() error {
 	return nil
 }
 
-func (n *Node) RunLoop() {
+func (n *Node) RunLoop() error {
 	for {
 		envelope, err := n.peer.Receive()
 		if err != nil {
 			log.Printf("error on read from peer %s: %v", n.peer.Address(), err)
 			if errors.Is(err, io.EOF) {
-				panic(err)
+				return err
 			} else {
-				continue
+				panic(err)
 			}
 		}
 
