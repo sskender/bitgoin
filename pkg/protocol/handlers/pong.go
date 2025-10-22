@@ -26,7 +26,7 @@ func (h *PongHandler) Handle(msg base.Message, peer *network.Peer) error {
 	// measure round trip time from last sent ping
 	peer.PingRTT = time.Since(peer.PingTime)
 
-	log.Printf("peer %s RTT is %.2f", peer.Address(), peer.PingRTT.Seconds())
+	log.Printf("peer %s RTT is %dms", peer.Address(), peer.PingRTT.Milliseconds())
 
 	return nil
 }
